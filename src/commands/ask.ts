@@ -7,6 +7,7 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { APIChatInputApplicationCommandInteraction } from 'discord-api-types/v10';
 import { Command, CommandResult } from '../discord/types';
+import { sendLongMessage } from '../discord/message-utils';
 import { editOriginalResponse } from '../discord/responses';
 import { getProviderManager } from '../llm/provider';
 
@@ -54,8 +55,8 @@ const command: Command = {
       const provider = getProviderManager().getProvider();
       const response = await provider.generate(questionText);
 
-      // Send the response back to Discord
-      await editOriginalResponse(applicationId, interaction.token, response);
+      // Send the response back to Discord (handles long messages automatically)
+      await sendLongMessage(applicationId, interaction.token, response);
     } catch (error) {
       console.error('Error in ask command:', error);
       await editOriginalResponse(

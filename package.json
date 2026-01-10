@@ -8,15 +8,18 @@
     "watch": "tsc -w",
     "test": "jest",
     "dev": "nodemon --exec ts-node scripts/local-server.ts",
+    "predeploy": "ts-node scripts/pre-deploy.ts",
     "deploy": "cdk deploy BotStack",
     "destroy": "cdk destroy BotStack",
     "register": "ts-node scripts/register-commands.ts",
     "validate": "ts-node scripts/validate.ts",
+    "validate:env": "ts-node scripts/pre-deploy.ts",
     "synth": "cdk synth"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.145",
     "@types/express": "^4.17.21",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.17.0",
     "aws-cdk": "^2.198.0",
     "esbuild": "^0.24.0",

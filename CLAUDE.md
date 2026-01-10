@@ -48,9 +48,10 @@ definition: new SlashCommandBuilder()
 |---------|-------------|
 | `npm run dev` | Start local development server |
 | `npm run build` | Build TypeScript |
-| `npm run deploy` | Deploy to AWS |
+| `npm run deploy` | Deploy to AWS (validates env first) |
 | `npm run register` | Register Discord commands |
 | `npm run validate` | Check commands for errors |
+| `npm run validate:env` | Check environment configuration |
 | `npm test` | Run tests |
 
 ## Environment Variables
@@ -137,6 +138,35 @@ import { getProviderManager } from '../llm/provider';
 
 const provider = getProviderManager().getProvider();
 const response = await provider.generate('Your prompt here');
+```
+
+**Handling long responses** (auto-splits for Discord's 2000 char limit):
+```typescript
+import { sendLongMessage } from '../discord/message-utils';
+
+// In processDeferred:
+await sendLongMessage(appId, interaction.token, longResponse);
+```
+
+**Switch providers at runtime** with `/provider set gemini` or `/provider set claude`
+
+## SSM Parameter Store
+
+Use SSM for runtime configuration (free, unlike Secrets Manager):
+
+```typescript
+import { getParameter, setParameter, serverConfig } from '../config/ssm';
+
+// Read/write simple values
+const value = await getParameter('my-key');
+await setParameter('my-key', 'my-value');
+
+// Server-specific settings
+await serverConfig.set(serverId, 'prefix', '!');
+const prefix = await serverConfig.get(serverId, 'prefix');
+
+// Store webhook URLs securely
+await serverConfig.setWebhook(serverId, webhookUrl);
 ```
 
 ## Troubleshooting
