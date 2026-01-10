@@ -1,8 +1,8 @@
 /**
- * Ask Command
+ * Summarize Command
  *
- * Ask the AI a question using the configured LLM provider.
- * Example of a deferred response command with LLM integration.
+ * Summarize text using the summarize skill.
+ * Example of using the skills system.
  */
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { APIChatInputApplicationCommandInteraction } from 'discord-api-types/v10';
@@ -13,22 +13,21 @@ import { runPrompt } from '../llm/prompts';
 import { logger } from '../utils/logger';
 
 const command: Command = {
-  name: 'ask',
-  description: 'Ask the AI a question',
+  name: 'summarize',
+  description: 'Summarize text into key points',
 
   definition: new SlashCommandBuilder()
-    .setName('ask')
-    .setDescription('Ask the AI a question')
+    .setName('summarize')
+    .setDescription('Summarize text into key points')
     .addStringOption((option) =>
       option
-        .setName('question')
-        .setDescription('Your question for the AI')
+        .setName('text')
+        .setDescription('The text to summarize')
         .setRequired(true)
     )
     .toJSON(),
 
   async execute(_interaction: APIChatInputApplicationCommandInteraction): Promise<CommandResult> {
-    // Return deferred response - processing happens in processDeferred
     return { type: 'deferred' };
   },
 
@@ -37,44 +36,34 @@ const command: Command = {
     const startTime = Date.now();
 
     try {
-      // Get the question from options
-      const questionOption = interaction.data.options?.find(
-        (opt) => opt.name === 'question'
-      );
-
-      if (!questionOption || questionOption.type !== 3) {
-        await editOriginalResponse(
-          applicationId,
-          interaction.token,
-          'Please provide a question.'
-        );
+      const textOption = interaction.data.options?.find((opt) => opt.name === 'text');
+      if (!textOption || textOption.type !== 3) {
+        await editOriginalResponse(applicationId, interaction.token, 'Please provide text to summarize.');
         return;
       }
 
-      const question = questionOption.value as string;
+      const text = textOption.value as string;
 
-      logger.info('Running answer prompt', {
-        command: 'ask',
+      logger.info('Running summarize prompt', {
+        command: 'summarize',
         userId: interaction.member?.user?.id,
         serverId: interaction.guild_id,
       });
 
-      // Use the answer prompt
-      const result = await runPrompt('answer', { question });
+      const result = await runPrompt('summarize', { text });
 
-      logger.command('ask', 'complete', {
+      logger.command('summarize', 'complete', {
         durationMs: Date.now() - startTime,
         provider: result.provider,
       });
 
-      // Send the response back to Discord (handles long messages automatically)
       await sendLongMessage(applicationId, interaction.token, result.response);
     } catch (error) {
-      logger.error('Ask command failed', error as Error, { command: 'ask' });
+      logger.error('Summarize command failed', error as Error, { command: 'summarize' });
       await editOriginalResponse(
         applicationId,
         interaction.token,
-        'Sorry, I encountered an error while processing your question.'
+        'Sorry, I encountered an error while summarizing.'
       );
     }
   },

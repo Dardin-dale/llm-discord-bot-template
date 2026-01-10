@@ -1,8 +1,7 @@
 /**
- * Ask Command
+ * Explain Command
  *
- * Ask the AI a question using the configured LLM provider.
- * Example of a deferred response command with LLM integration.
+ * Explain a concept in simple terms using the explain skill.
  */
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { APIChatInputApplicationCommandInteraction } from 'discord-api-types/v10';
@@ -13,22 +12,21 @@ import { runPrompt } from '../llm/prompts';
 import { logger } from '../utils/logger';
 
 const command: Command = {
-  name: 'ask',
-  description: 'Ask the AI a question',
+  name: 'explain',
+  description: 'Explain a concept in simple terms',
 
   definition: new SlashCommandBuilder()
-    .setName('ask')
-    .setDescription('Ask the AI a question')
+    .setName('explain')
+    .setDescription('Explain a concept in simple terms')
     .addStringOption((option) =>
       option
-        .setName('question')
-        .setDescription('Your question for the AI')
+        .setName('topic')
+        .setDescription('The topic or concept to explain')
         .setRequired(true)
     )
     .toJSON(),
 
   async execute(_interaction: APIChatInputApplicationCommandInteraction): Promise<CommandResult> {
-    // Return deferred response - processing happens in processDeferred
     return { type: 'deferred' };
   },
 
@@ -37,44 +35,33 @@ const command: Command = {
     const startTime = Date.now();
 
     try {
-      // Get the question from options
-      const questionOption = interaction.data.options?.find(
-        (opt) => opt.name === 'question'
-      );
-
-      if (!questionOption || questionOption.type !== 3) {
-        await editOriginalResponse(
-          applicationId,
-          interaction.token,
-          'Please provide a question.'
-        );
+      const topicOption = interaction.data.options?.find((opt) => opt.name === 'topic');
+      if (!topicOption || topicOption.type !== 3) {
+        await editOriginalResponse(applicationId, interaction.token, 'Please provide a topic to explain.');
         return;
       }
 
-      const question = questionOption.value as string;
+      const topic = topicOption.value as string;
 
-      logger.info('Running answer prompt', {
-        command: 'ask',
+      logger.info('Running explain prompt', {
+        command: 'explain',
         userId: interaction.member?.user?.id,
-        serverId: interaction.guild_id,
       });
 
-      // Use the answer prompt
-      const result = await runPrompt('answer', { question });
+      const result = await runPrompt('explain', { topic });
 
-      logger.command('ask', 'complete', {
+      logger.command('explain', 'complete', {
         durationMs: Date.now() - startTime,
         provider: result.provider,
       });
 
-      // Send the response back to Discord (handles long messages automatically)
       await sendLongMessage(applicationId, interaction.token, result.response);
     } catch (error) {
-      logger.error('Ask command failed', error as Error, { command: 'ask' });
+      logger.error('Explain command failed', error as Error, { command: 'explain' });
       await editOriginalResponse(
         applicationId,
         interaction.token,
-        'Sorry, I encountered an error while processing your question.'
+        'Sorry, I encountered an error while explaining.'
       );
     }
   },
