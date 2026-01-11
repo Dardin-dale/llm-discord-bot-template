@@ -55,7 +55,31 @@ cp .env.example .env
 
 Edit `.env` and fill in your Discord credentials from Step 1.
 
-### Step 4: Open in Claude Code
+### Step 4: Get an AI API Key (for smart commands)
+
+Your bot can use AI to answer questions, write content, etc. You need an API key from at least one provider:
+
+**Option A: Gemini (Recommended - Free)**
+1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
+2. Sign in with your Google account
+3. Click "Create API Key"
+4. Copy the key and add to `.env`:
+   ```
+   GEMINI_API_KEY=your-key-here
+   ```
+
+**Option B: Claude**
+1. Go to [Anthropic Console](https://console.anthropic.com/)
+2. Create an account and add billing info
+3. Go to "API Keys" and create a new key
+4. Copy the key and add to `.env`:
+   ```
+   ANTHROPIC_API_KEY=your-key-here
+   ```
+
+> **Tip:** Start with Gemini - it's free and works great. You can add Claude later if you want.
+
+### Step 5: Open in Claude Code
 
 Open the project folder in Claude Code. Claude will automatically understand the project structure.
 
