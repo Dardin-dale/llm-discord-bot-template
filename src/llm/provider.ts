@@ -2,17 +2,18 @@
  * LLM Provider Manager
  *
  * Manages multiple LLM providers and provides a unified interface.
- * Supports Gemini (default, free tier) and Claude.
+ * Supports Gemini (default, free tier), Claude, and OpenAI.
  */
 import { LLMProvider } from './types';
 import { GeminiProvider } from './gemini';
 import { ClaudeProvider } from './claude';
+import { OpenAIProvider } from './openai';
 
 export class LLMProviderManager {
   private providers: Map<string, LLMProvider> = new Map();
   private currentProvider: string;
 
-  constructor(defaultProvider: 'gemini' | 'claude' = 'gemini') {
+  constructor(defaultProvider: 'gemini' | 'claude' | 'openai' = 'gemini') {
     this.currentProvider = defaultProvider;
     this.initializeProviders();
   }
@@ -30,9 +31,15 @@ export class LLMProviderManager {
       this.providers.set('claude', new ClaudeProvider(claudeKey));
     }
 
+    // Initialize OpenAI if API key is available
+    const openaiKey = process.env.OPENAI_API_KEY;
+    if (openaiKey) {
+      this.providers.set('openai', new OpenAIProvider(openaiKey));
+    }
+
     // Warn if no providers available
     if (this.providers.size === 0) {
-      console.warn('No LLM providers configured. Set GEMINI_API_KEY or ANTHROPIC_API_KEY.');
+      console.warn('No LLM providers configured. Set GEMINI_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY.');
     }
   }
 
@@ -46,7 +53,7 @@ export class LLMProviderManager {
     if (!provider) {
       const available = this.getAvailableProviders();
       if (available.length === 0) {
-        throw new Error('No LLM providers configured. Set GEMINI_API_KEY or ANTHROPIC_API_KEY.');
+        throw new Error('No LLM providers configured. Set GEMINI_API_KEY, ANTHROPIC_API_KEY, or OPENAI_API_KEY.');
       }
       throw new Error(
         `Provider '${providerName}' not available. Available: ${available.join(', ')}`
@@ -59,7 +66,7 @@ export class LLMProviderManager {
   /**
    * Set the current default provider
    */
-  public setCurrentProvider(name: 'gemini' | 'claude'): void {
+  public setCurrentProvider(name: 'gemini' | 'claude' | 'openai'): void {
     if (!this.providers.has(name)) {
       throw new Error(`Provider '${name}' is not configured`);
     }
@@ -89,7 +96,8 @@ let providerManager: LLMProviderManager | null = null;
  */
 export function getProviderManager(): LLMProviderManager {
   if (!providerManager) {
-    const defaultProvider = (process.env.DEFAULT_LLM_PROVIDER as 'gemini' | 'claude') || 'gemini';
+    const defaultProvider =
+      (process.env.DEFAULT_LLM_PROVIDER as 'gemini' | 'claude' | 'openai') || 'gemini';
     providerManager = new LLMProviderManager(defaultProvider);
   }
   return providerManager;
