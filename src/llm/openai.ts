@@ -8,9 +8,11 @@ import { LLMProvider, GenerateOptions } from './types';
 export class OpenAIProvider implements LLMProvider {
   public readonly name = 'openai';
   private apiKey: string;
+  private model: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, model?: string) {
     this.apiKey = apiKey;
+    this.model = model || process.env.OPENAI_MODEL || 'gpt-5-nano';
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<string> {
@@ -30,7 +32,7 @@ export class OpenAIProvider implements LLMProvider {
           Authorization: `Bearer ${this.apiKey}`,
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: this.model,
           messages,
           max_tokens: options?.maxTokens || 1500,
           temperature: options?.temperature ?? 0.7,

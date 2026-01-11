@@ -10,15 +10,16 @@ import { LLMProvider, GenerateOptions } from './types';
 export class GeminiProvider implements LLMProvider {
   public readonly name = 'gemini';
   private genAI: GoogleGenerativeAI;
+  private model: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, model?: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
+    this.model = model || process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite';
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<string> {
-    // Use Gemini with Google Search grounding for real-time information
     const model = this.genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
+      model: this.model,
       generationConfig: {
         maxOutputTokens: options?.maxTokens || 1500,
         temperature: options?.temperature,

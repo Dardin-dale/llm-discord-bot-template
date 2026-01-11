@@ -9,15 +9,17 @@ import { LLMProvider, GenerateOptions } from './types';
 export class ClaudeProvider implements LLMProvider {
   public readonly name = 'claude';
   private client: Anthropic;
+  private model: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, model?: string) {
     this.client = new Anthropic({ apiKey });
+    this.model = model || process.env.CLAUDE_MODEL || 'claude-haiku-4-5';
   }
 
   async generate(prompt: string, options?: GenerateOptions): Promise<string> {
     try {
       const message = await this.client.messages.create({
-        model: 'claude-haiku-4-5-20251001',
+        model: this.model,
         max_tokens: options?.maxTokens || 1500,
         system: options?.systemPrompt,
         messages: [
