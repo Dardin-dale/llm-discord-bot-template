@@ -44,7 +44,7 @@ definition: new SlashCommandBuilder()
 | `lib/` | AWS CDK infrastructure |
 | `scripts/` | Helper scripts (register, validate, local-server) |
 | `templates/` | Additional templates for commands |
-| `.github/workflows/` | CI/CD pipelines |
+| `.github/workflow-templates/` | CI/CD templates (optional) |
 | `.claude/skills/` | Claude Code skills (model-invoked helpers) |
 
 ## Commands
@@ -337,28 +337,17 @@ Claude: [Uses deploy-bot skill, runs validation, builds, deploys]
 
 Skills are in `.claude/skills/` - each has a `SKILL.md` with instructions Claude follows.
 
-## GitHub Actions CI/CD
+## GitHub Actions CI/CD (Optional)
 
-The template includes GitHub Actions workflows:
+CI/CD workflow templates are in `.github/workflow-templates/`. They're not active by default.
 
-**Pull Request Checks** (`.github/workflows/pr.yml`):
-- Runs on every PR
-- Type checks, linting, and tests
-- Validates command structure
+**To enable:**
+1. Copy workflows to `.github/workflows/`
+2. Configure GitHub Secrets (see `.github/workflow-templates/README.md`)
+3. Commit and push
 
-**Deploy on Merge** (`.github/workflows/deploy.yml`):
-- Triggers when PR merges to `main`
-- Builds and deploys to AWS
-- Registers Discord commands
+**Available workflows:**
+- `pr.yml` - Runs tests on pull requests
+- `deploy.yml` - Auto-deploys when you push to main
 
-**Required GitHub Secrets:**
-| Secret | Purpose |
-|--------|---------|
-| `AWS_ACCESS_KEY_ID` | AWS credentials for deployment |
-| `AWS_SECRET_ACCESS_KEY` | AWS credentials for deployment |
-| `AWS_REGION` | AWS region (e.g., `us-east-1`) |
-| `DISCORD_APP_ID` | Discord application ID |
-| `DISCORD_BOT_SECRET_TOKEN` | Discord bot token |
-| `DISCORD_BOT_PUBLIC_KEY` | Discord public key |
-
-Set these in your GitHub repo: Settings -> Secrets and variables -> Actions
+Or tell Claude: *"Help me set up CI/CD"*
