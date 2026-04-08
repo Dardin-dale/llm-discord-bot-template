@@ -9,10 +9,9 @@
  */
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import dotenv from 'dotenv';
 import { getCommandDefinitions } from '../src/commands/loader';
 
-dotenv.config();
+process.loadEnvFile();
 
 async function registerCommands(): Promise<void> {
   const token = process.env.DISCORD_BOT_SECRET_TOKEN;

@@ -6,10 +6,8 @@
  *
  * Prevents cryptic CDK errors by catching missing config early.
  */
-import dotenv from 'dotenv';
-
 // Load .env file
-dotenv.config();
+process.loadEnvFile();
 
 interface EnvVar {
   name: string;

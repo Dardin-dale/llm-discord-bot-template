@@ -10,11 +10,10 @@
  *   3. Copy the ngrok URL to Discord Developer Portal -> Interactions Endpoint URL
  */
 import express from 'express';
-import dotenv from 'dotenv';
 import { handler } from '../src/index';
 import { APIGatewayProxyEvent } from 'aws-lambda';
 
-dotenv.config();
+process.loadEnvFile();
 
 const app = express();
 const PORT = process.env.PORT || 3000;

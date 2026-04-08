@@ -23,8 +23,7 @@ import { getCommand } from './commands/loader';
 import { DeferredProcessingEvent, ScheduledTaskEvent, BotEvent } from './discord/types';
 
 // Load environment variables
-import dotenv from 'dotenv';
-dotenv.config();
+process.loadEnvFile();
 
 const lambdaClient = new LambdaClient({});
 
