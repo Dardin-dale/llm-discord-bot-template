@@ -43,8 +43,8 @@ You'll need:
 Open a terminal and run:
 
 ```bash
-git clone <this-repo>
-cd discord-bot-template
+git clone https://github.com/Dardin-dale/llm-discord-bot-template.git
+cd llm-discord-bot-template
 npm install
 ```
 

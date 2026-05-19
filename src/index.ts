@@ -21,6 +21,7 @@ import {
 } from './discord/responses';
 import { getCommand } from './commands/loader';
 import { DeferredProcessingEvent, ScheduledTaskEvent, BotEvent } from './discord/types';
+import { logger } from './utils/logger';
 
 // Load environment variables
 process.loadEnvFile();
@@ -36,13 +37,13 @@ export async function handler(
   // Check for async events (deferred processing or scheduled tasks)
   if ('type' in event) {
     if (event.type === 'deferred_processing') {
-      console.log(`Processing deferred command: ${event.commandName}`);
+      logger.info('Processing deferred command', { command: event.commandName });
       await processDeferred(event);
       return;
     }
 
     if (event.type === 'scheduled_task') {
-      console.log(`Processing scheduled task: ${event.task}`);
+      logger.info('Processing scheduled task', { task: event.task });
       await processScheduledTask(event);
       return;
     }
@@ -50,12 +51,12 @@ export async function handler(
 
   // Otherwise, this is an API Gateway event from Discord
   const apiEvent = event as APIGatewayProxyEvent;
-  console.log('Received Discord interaction');
+  logger.info('Received Discord interaction');
 
   // Get public key for verification
   const publicKey = process.env.DISCORD_BOT_PUBLIC_KEY;
   if (!publicKey) {
-    console.error('DISCORD_BOT_PUBLIC_KEY not configured');
+    logger.error('DISCORD_BOT_PUBLIC_KEY not configured');
     return errorResponse(500, 'Server configuration error');
   }
 
@@ -66,7 +67,7 @@ export async function handler(
 
   const verification = verifyDiscordRequest(rawBody, signature, timestamp, publicKey);
   if (!verification.isValid) {
-    console.error('Signature verification failed:', verification.error);
+    logger.error('Signature verification failed', undefined, { reason: verification.error });
     return errorResponse(401, verification.error || 'Unauthorized');
   }
 
@@ -75,7 +76,7 @@ export async function handler(
 
   // Handle PING (Discord's verification check)
   if (interaction.type === InteractionType.Ping) {
-    console.log('Responding to PING');
+    logger.info('Responding to PING');
     return jsonResponse(createPongResponse());
   }
 
@@ -85,7 +86,7 @@ export async function handler(
   }
 
   // Unknown interaction type
-  console.warn('Unknown interaction type:', interaction.type);
+  logger.warn('Unknown interaction type', { interactionType: interaction.type });
   return errorResponse(400, 'Unknown interaction type');
 }
 
@@ -96,13 +97,13 @@ async function handleCommand(
   interaction: APIChatInputApplicationCommandInteraction
 ): Promise<APIGatewayProxyResult> {
   const commandName = interaction.data.name;
-  console.log(`Handling command: ${commandName}`);
+  logger.info('Handling command', { command: commandName });
 
   try {
     const command = await getCommand(commandName);
 
     if (!command) {
-      console.error(`Unknown command: ${commandName}`);
+      logger.error('Unknown command', undefined, { command: commandName });
       return jsonResponse(
         commandResultToResponse({
           type: 'instant',
@@ -123,7 +124,7 @@ async function handleCommand(
 
     return jsonResponse(response);
   } catch (error) {
-    console.error(`Error handling command ${commandName}:`, error);
+    logger.error('Error handling command', error as Error, { command: commandName });
     return jsonResponse(
       commandResultToResponse({
         type: 'instant',
@@ -144,11 +145,11 @@ async function triggerDeferredProcessing(
   const functionName = process.env.AWS_LAMBDA_FUNCTION_NAME;
 
   if (!functionName) {
-    console.error('AWS_LAMBDA_FUNCTION_NAME not set - cannot process deferred');
+    logger.error('AWS_LAMBDA_FUNCTION_NAME not set - cannot process deferred');
     return;
   }
 
-  console.log('Invoking self async for deferred processing');
+  logger.info('Invoking self async for deferred processing', { command: commandName });
 
   const payload: DeferredProcessingEvent = {
     type: 'deferred_processing',
@@ -176,7 +177,7 @@ async function processDeferred(event: DeferredProcessingEvent): Promise<void> {
     const command = await getCommand(commandName);
 
     if (!command?.processDeferred) {
-      console.error(`Command ${commandName} has no processDeferred handler`);
+      logger.error('Command has no processDeferred handler', undefined, { command: commandName });
       await editOriginalResponse(
         applicationId,
         interaction.token,
@@ -187,7 +188,7 @@ async function processDeferred(event: DeferredProcessingEvent): Promise<void> {
 
     await command.processDeferred(interaction);
   } catch (error) {
-    console.error(`Error in deferred processing for ${commandName}:`, error);
+    logger.error('Error in deferred processing', error as Error, { command: commandName });
     await editOriginalResponse(
       applicationId,
       interaction.token,
@@ -200,7 +201,7 @@ async function processDeferred(event: DeferredProcessingEvent): Promise<void> {
  * Process scheduled task from EventBridge
  */
 async function processScheduledTask(event: ScheduledTaskEvent): Promise<void> {
-  console.log(`Scheduled task: ${event.task}`);
+  logger.info('Scheduled task triggered', { task: event.task });
   // Implement scheduled task handling here
   // Example: daily summaries, cleanup jobs, etc.
 }

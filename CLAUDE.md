@@ -274,24 +274,6 @@ Enable EventBridge for:
 
 Set `ENABLE_EVENTBRIDGE=true` in `.env` before deploying.
 
-## AWS Resources Created
-
-- **Lambda**: Discord interaction handler
-- **API Gateway**: `/interactions` endpoint for Discord
-- **IAM Role**: Permissions for Lambda, SSM, self-invocation
-- **SSM Parameters**: Configuration storage (free tier)
-- **EventBridge** (optional): Event bus and notification handler
-
-## Cost Estimate
-
-| Resource | Monthly Cost |
-|----------|--------------|
-| Lambda (1000 invocations/day) | ~$0.20 |
-| API Gateway | ~$0.35 |
-| SSM Parameters (standard) | Free |
-| Gemini API (free tier) | Free |
-| **Total** | **~$0.55/month** |
-
 ## Security Notes
 
 - Never commit `.env` file (it's in `.gitignore`)
